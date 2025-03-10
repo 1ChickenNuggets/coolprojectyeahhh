@@ -1,0 +1,91 @@
+
+
+# Initialize pygame
+pygame.init()
+
+# Define constants
+WINDOW_SIZE = 300
+TILE_SIZE = WINDOW_SIZE // 3
+FPS = 60
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GRAY = (200, 200, 200)
+
+# Initialize screen
+screen = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
+pygame.display.set_caption("Sliding Puzzle")
+
+# Create the puzzle grid
+def create_grid():
+    grid = list(range(1, 9)) + [0]  # Numbers 1-8, 0 represents empty space
+    random.shuffle(grid)  # Shuffle the tiles
+    return [grid[i:i + 3] for i in range(0, 9, 3)]  # Convert into 3x3 grid
+
+# Function to draw the grid
+def draw_grid(grid):
+    for row in range(3):
+        for col in range(3):
+            tile = grid[row][col]
+            x = col * TILE_SIZE
+            y = row * TILE_SIZE
+            if tile != 0:
+                pygame.draw.rect(screen, GRAY, (x, y, TILE_SIZE, TILE_SIZE))
+                font = pygame.font.SysFont(None, 48)
+                text = font.render(str(tile), True, BLACK)
+                screen.blit(text, (x + TILE_SIZE // 3, y + TILE_SIZE // 3))
+            else:
+                pygame.draw.rect(screen, WHITE, (x, y, TILE_SIZE, TILE_SIZE))
+
+# Find the empty space (0)
+def find_empty_space(grid):
+    for r in range(3):
+        for c in range(3):
+            if grid[r][c] == 0:
+                return r, c
+
+# Move a tile into the empty space
+def move_tile(grid, row, col, empty_row, empty_col):
+    grid[empty_row][empty_col], grid[row][col] = grid[row][col], grid[empty_row][empty_col]
+
+# Check if the grid is solved
+def is_solved(grid):
+    return grid == [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
+
+# Main game loop
+def main():
+    grid = create_grid()
+    clock = pygame.time.Clock()
+    running = True
+
+    while running:
+        screen.fill(WHITE)
+        draw_grid(grid)
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = pygame.mouse.get_pos()
+                col, row = x // TILE_SIZE, y // TILE_SIZE
+                empty_row, empty_col = find_empty_space(grid)
+
+                # Move tile if adjacent to empty space
+                if (abs(row - empty_row) == 1 and col == empty_col) or (abs(col - empty_col) == 1 and row == empty_row):
+                    move_tile(grid, row, col, empty_row, empty_col)
+
+        if is_solved(grid):
+            print("Congratulations! You solved the puzzle!")
+            running = False
+
+        clock.tick(FPS)
+
+    pygame.quit()
+
+# Run the game
+if __name__ == "__main__":
+    main()
+
+
